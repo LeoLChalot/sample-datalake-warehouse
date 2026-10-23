@@ -60,6 +60,7 @@ L'ensemble de la pile technologique est conteneurisée via **Docker Compose**, p
 
 | Composant | Rôle dans l'Architecture | Accès / Interface |
 | :--- | :--- | :--- |
+| **Site Web Pédagogique (Nginx)** | Portail de cours interactif (théorie, simulateur, quiz élève) | Interface Web : `http://localhost:8080` |
 | **AWS S3 Open Data** | Fournisseur de données massives ouvertes (courses de taxis de New York) | Endpoint public HTTPS / S3 |
 | **MinIO** | Object Storage S3 local simulant un Data Lake d'entreprise | Console Web : `http://localhost:9001`<br>API S3 : `http://localhost:9000` |
 | **Apache Spark (PySpark)** | Moteur de calcul distribué pour le nettoyage et l'agrégation | Exécuté dans le conteneur Jupyter |
@@ -83,12 +84,27 @@ docker compose up --build -d
 
 ### 3. Tableau de bord des Services et Identifiants
 
-| Service | URL locale | Identifiants |
-| :--- | :--- | :--- |
-| **JupyterLab** | [http://localhost:8888](http://localhost:8888) | Token : `medallion` |
-| **MinIO Console** | [http://localhost:9001](http://localhost:9001) | User : `admin` / Password : `password123` |
-| **Metabase (BI)** | [http://localhost:3000](http://localhost:3000) | Compte à créer au premier accès (voir Notebook 04) |
-| **PostgreSQL** | `localhost:5432` | DB : `gold_db`, User : `postgres`, Pwd : `postgres123` |
+| Service | URL locale | Identifiants | Rôle |
+| :--- | :--- | :--- | :--- |
+| 🎓 **Site du Cours (Nginx)** | [http://localhost:8080](http://localhost:8080) | Accès libre | **Support de cours interactif, simulateur & quiz** |
+| 📓 **JupyterLab** | [http://localhost:8888](http://localhost:8888) | Token : `medallion` | Orchestration des TP et notebooks de code |
+| 🪣 **MinIO Console** | [http://localhost:9001](http://localhost:9001) | User : `admin` / Password : `password123` | Exploration des buckets Bronze et Silver |
+| 📊 **Metabase (BI)** | [http://localhost:3000](http://localhost:3000) | Compte à créer au premier accès (voir Notebook 04) | Tableaux de bord et dataviz métier |
+| 🐘 **PostgreSQL** | `localhost:5432` | DB : `gold_db`, User : `postgres`, Pwd : `postgres123` | Data Warehouse (couche Gold) |
+
+---
+
+## 🌐 Le Site Web Pédagogique Interactif (Port 8080)
+
+Le conteneur Nginx héberge un site moderne et ludique spécialement conçu pour ancrer les concepts théoriques avant ou en parallèle de la pratique :
+
+- 🧭 **L'Aiguilleur d'Architecture (Simulateur interactif)** : L'élève choisit ses contraintes (volumétrie, variété de données, cas d'usage) et le simulateur recommande l'architecture optimale (RDBMS simple, Lakehouse Médaillon, etc.) avec justifications économiques et techniques.
+- 🏛️ **Les Piliers du Stockage** : Démystification des différences et synergies entre **Data Lake**, **Data Warehouse** et **Data Marts**.
+- ⚖️ **Paradigmes Clés** : Tableaux comparatifs interactifs **OLTP vs OLAP** et **ETL classique vs ELT moderne**.
+- 📦 **Le Format Apache Parquet en Profondeur** : Visualisation concrète du stockage en colonnes vs en lignes (CSV), avec explications du *Predicate Pushdown*, du *Projection Pushdown* et des algorithmes de compression (*Snappy*).
+- ❄️ **Modélisation Décisionnelle (Kimball)** : Explorateur interactif permettant de basculer d'un **Schéma en Étoile** à un **Schéma en Flocon (Snowflake)** pour en comprendre les compromis.
+- 🥉🥈🥇 **L'Architecture Médaillon** : Explication détaillée des rôles, garanties et contrats de service des couches **Bronze**, **Silver** et **Gold**.
+- 📝 **Quiz Élève Interactif (10 questions)** : Questionnaire d'auto-évaluation avec calcul de score instantané et explications pédagogiques pour chaque question.
 
 ---
 

@@ -113,6 +113,20 @@ services:
     networks:
       - medallion-network
 
+  # =====================================================================
+  # 6. COURSE-WEB (NGINX) : Serveur Web du Cours Interactif
+  # =====================================================================
+  course-web:
+    image: nginx:alpine
+    container_name: medallion-course-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./course-website:/usr/share/nginx/html:ro
+    networks:
+      - medallion-network
+
 networks:
   medallion-network:
     name: medallion-network

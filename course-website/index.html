@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture Médaillon & Data Engineering | Cours Interactif</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            bronze: {
+              DEFAULT: '#b45309',
+              light: '#fef3c7',
+              dark: '#78350f'
+            },
+            silver: {
+              DEFAULT: '#64748b',
+              light: '#f1f5f9',
+              dark: '#334155'
+            },
+            gold: {
+              DEFAULT: '#eab308',
+              light: '#fef9c3',
+              dark: '#a16207'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge-glow {
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <!-- ========================================================================= -->
+  <!-- BARRE DE NAVIGATION FIXE                                                  -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 glass-card border-b border-slate-200 dark:border-slate-800 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-slate-400 to-yellow-400 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-medal text-lg"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">DataLakehouse</span>
+          <span class="text-xs ml-1.5 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium">Cours interactif</span>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-1 text-sm font-medium">
+        <a href="#pre-projet" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Réflexion Pré-Projet</a>
+        <a href="#stockage" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lake vs DWH</a>
+        <a href="#paradigmes" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">OLAP & ELT</a>
+        <a href="#parquet" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Parquet</a>
+        <a href="#modelisation" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Étoile vs Flocon</a>
+        <a href="#medaillon" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Médaillon</a>
+        <a href="#quiz" class="px-3 py-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition">Quiz Élève</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <button id="themeToggle" class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center">
+          <i class="fa-solid fa-moon dark:hidden"></i>
+          <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+        </button>
+        <a href="http://localhost:8888" target="_blank" class="hidden sm:inline-flex items-center space-x-2 text-xs font-semibold px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow transition">
+          <i class="fa-solid fa-book-open"></i>
+          <span>JupyterLab</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- HERO BANNER                                                               -->
+  <!-- ========================================================================= -->
+  <section class="relative overflow-hidden py-16 lg:py-24 border-b border-slate-200 dark:border-slate-800">
+    <div class="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-70"></div>
+    
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 mb-6 badge-glow">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Guide & Support de Cours Data Engineering</span>
+      </div>
+      
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
+        Comprendre et Maîtriser <br>
+        <span class="gradient-text">L'Architecture Médaillon</span>
+      </h1>
+      
+      <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-8 leading-relaxed">
+        Ce site pédagogique accompagne le projet pratique. Découvrez les arbitrages architecturaux, les formats modernes et les concepts clés qui régissent les plateformes de données contemporaines.
+      </p>
+
+      <!-- Badges des couches médaillon -->
+      <div class="flex flex-wrap items-center justify-center gap-3 mb-10">
+        <div class="flex items-center space-x-2 px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-semibold text-sm">
+          <span class="w-3 h-3 rounded-full bg-amber-600 animate-pulse"></span>
+          <span>🥉 Couche Bronze (Raw)</span>
+        </div>
+        <i class="fa-solid fa-arrow-right text-slate-400 hidden sm:inline"></i>
+        <div class="flex items-center space-x-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm">
+          <span class="w-3 h-3 rounded-full bg-slate-400 animate-pulse"></span>
+          <span>🥈 Couche Silver (Cleaned)</span>
+        </div>
+        <i class="fa-solid fa-arrow-right text-slate-400 hidden sm:inline"></i>
+        <div class="flex items-center space-x-2 px-4 py-2 rounded-xl bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-300 font-semibold text-sm">
+          <span class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></span>
+          <span>🥇 Couche Gold (Curated)</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="#simulateur" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-600/20 transition transform hover:-translate-y-0.5">
+          <i class="fa-solid fa-compass"></i>
+          <span>L'Aiguilleur d'Architecture (Simulateur)</span>
+        </a>
+        <a href="#quiz" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-semibold border border-slate-200 dark:border-slate-700 transition">
+          <i class="fa-solid fa-circle-question text-indigo-500"></i>
+          <span>Tester mes connaissances (Quiz)</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 1. RÉFLEXION PRÉ-PROJET & CHOIX ARCHITECTURAUX                             -->
+  <!-- ========================================================================= -->
+  <section id="pre-projet" class="py-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase">Étape 0 : Prise de Décision</span>
+      <h2 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">La Réflexion Pré-Projet : Comment Choisir ?</h2>
+      <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 text-sm sm:text-base">
+        On ne commence jamais un projet en choisissant aveuglément des outils. Une architecture data découle de compromis précis entre 4 contraintes majeures.
+      </p>
+    </div>
+
+    <!-- Les 4 Piliers de réflexion -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div class="glass-card p-6 rounded-2xl hover:shadow-xl transition border-t-4 border-t-blue-500">
+        <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl mb-4">
+          <i class="fa-solid fa-database"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">1. La Volumétrie</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <strong>Mo à quelques Go</strong> : Un PostgreSQL suffit largement.<br>
+          <strong>Centaines de Go à Pétaoctets</strong> : Nécessite un stockage objet distribué (MinIO/S3) et un moteur distribué (Spark).
+        </p>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl hover:shadow-xl transition border-t-4 border-t-purple-500">
+        <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl mb-4">
+          <i class="fa-solid fa-shapes"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">2. La Variété</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <strong>Structurée (tables SQL)</strong> ➔ Data Warehouse direct.<br>
+          <strong>Semi-structurée (JSON, logs) ou non-structurée (images, audio)</strong> ➔ Data Lake obligatoire pour réceptionner le format natif.
+        </p>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl hover:shadow-xl transition border-t-4 border-t-pink-500">
+        <div class="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400 flex items-center justify-center text-xl mb-4">
+          <i class="fa-solid fa-gauge-high"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">3. La Vélocité</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <strong>Batch (quotidien / horaire)</strong> ➔ Pipelines PySpark programmés.<br>
+          <strong>Temps réel / Streaming</strong> ➔ Kafka, Spark Structured Streaming avec ingestion continue dans la couche Bronze.
+        </p>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl hover:shadow-xl transition border-t-4 border-t-emerald-500">
+        <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mb-4">
+          <i class="fa-solid fa-bullseye"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">4. L'Usage Final</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <strong>BI & Dashboards rapides</strong> ➔ Couche Gold relationnelle / Data Marts.<br>
+          <strong>Machine Learning & Data Science</strong> ➔ Accès direct aux fichiers Parquet propres de la couche Silver.
+        </p>
+      </div>
+    </div>
+
+    <!-- SIMULATEUR / AIGUILLEUR D'ARCHITECTURE INTERACTIF -->
+    <div id="simulateur" class="glass-card p-6 sm:p-8 rounded-3xl border border-indigo-200 dark:border-indigo-900 shadow-xl bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/40 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950/30">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">L'Aiguilleur d'Architecture Interactif</h3>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Sélectionnez vos contraintes pour découvrir l'architecture recommandée.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Volumétrie attendue</label>
+          <select id="simVolume" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500">
+            <option value="low">&lt; 50 Go (Volumétrie modérée)</option>
+            <option value="high" selected>&gt; 1 To (Big Data massif)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Types de Données</label>
+          <select id="simTypes" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500">
+            <option value="structured">Uniquement tables relationnelles (SQL)</option>
+            <option value="mixed" selected>Mixte (Parquet, CSV bruts, JSON, APIs)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Cible principale</label>
+          <select id="simTarget" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500">
+            <option value="bi" selected>Tableaux de bord BI (Metabase / PowerBI)</option>
+            <option value="ml">Data Science / Entraînement de Modèles ML</option>
+            <option value="both">Les deux (BI exécutif + Data Science)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="simResult" class="p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-sm transition">
+        <!-- Rempli dynamiquement en JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 2. DATALAKE vs DATAWAREHOUSE vs DATAMART                                   -->
+  <!-- ========================================================================= -->
+  <section id="stockage" class="py-16 bg-slate-100/70 dark:bg-slate-900/40 border-y border-slate-200 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-wider text-indigo-600 dark:text-indigo-400 uppercase">Les Piliers du Stockage</span>
+        <h2 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">Data Lake, Data Warehouse ou Data Mart ?</h2>
+        <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 text-sm sm:text-base">
+          Ces trois concepts ne s'opposent pas : ils s'emboîtent au sein d'une chaîne de valeur analytique cohérente.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- DATA LAKE -->
+        <div class="glass-card p-6 rounded-2xl border-t-4 border-t-amber-500 relative flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">Data Lake</span>
+              <span class="text-xs text-slate-400">Stockage Objet</span>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3 text-slate-900 dark:text-white">Le Lac de Données</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+              Dépôt centralisé stockant toutes les données brutes dans leur format natif, à coût de stockage minimal et avec une scalabilité infinie.
+            </p>
+            <ul class="text-xs space-y-2 text-slate-600 dark:text-slate-300 mb-6">
+              <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-0.5 mr-2"></i><strong>Schéma à la lecture</strong> (Schema-on-Read)</li>
+              <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-0.5 mr-2"></i>Tous formats : Parquet, JSON, CSV, logs, images</li>
+              <li class="flex items-start"><i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 mr-2"></i>Risque de <em>"Data Swamp"</em> sans gouvernance</li>
+            </ul>
+          </div>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-mono text-slate-600 dark:text-slate-300">
+            <strong>Exemples :</strong> MinIO, AWS S3, Azure Data Lake (ADLS), Google Cloud Storage.
+          </div>
+        </div>
+
+        <!-- DATA WAREHOUSE -->
+        <div class="glass-card p-6 rounded-2xl border-t-4 border-t-blue-500 relative flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">Data Warehouse</span>
+              <span class="text-xs text-slate-400">Base Analytique</span>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3 text-slate-900 dark:text-white">L'Entrepôt de Données</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+              Base de données hautement modélisée, optimisée pour exécuter des requêtes SQL complexes et croiser des données historiques d'entreprise.
+            </p>
+            <ul class="text-xs space-y-2 text-slate-600 dark:text-slate-300 mb-6">
+              <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-0.5 mr-2"></i><strong>Schéma à l'écriture</strong> (Schema-on-Write strict)</li>
+              <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-0.5 mr-2"></i>Performances SQL de pointe via indexation</li>
+              <li class="flex items-start"><i class="fa-solid fa-circle-info text-blue-500 mt-0.5 mr-2"></i>Données 100% nettoyées et unifiées</li>
+            </ul>
+          </div>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-mono text-slate-600 dark:text-slate-300">
+            <strong>Exemples :</strong> PostgreSQL (Gold local), Snowflake, Google BigQuery, AWS Redshift.
+          </div>
+        </div>
+
+        <!-- DATA MART -->
+        <div class="glass-card p-6 rounded-2xl border-t-4 border-t-emerald-500 relative flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">Data Mart</span>
+              <span class="text-xs text-slate-400">Sous-ensemble Métier</span>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3 text-slate-900 dark:text-white">Le Magasin de Données</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+              Sous-ensemble du Data Warehouse taillé sur mesure pour un département spécifique (ex: Finance, Marketing, Logistique de taxis).
+            </p>
+            <ul class="text-xs space-y-2 text-slate-600 dark:text-slate-300 mb-6">
+              <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-0.5 mr-2"></i>Ultra-ciblé sur un besoin business</li>
+              <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-0.5 mr-2"></i>Accès simplifié pour les analystes et Metabase</li>
+              <li class="flex items-start"><i class="fa-solid fa-bolt text-amber-500 mt-0.5 mr-2"></i>Temps de réponse instantané (&lt; 50 ms)</li>
+            </ul>
+          </div>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-mono text-slate-600 dark:text-slate-300">
+            <strong>Dans notre TP :</strong> Tables <code>agg_daily_taxi_metrics</code>, <code>agg_hourly_demand</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 3. PARADIGMES : OLTP vs OLAP & ETL vs ELT                                  -->
+  <!-- ========================================================================= -->
+  <section id="paradigmes" class="py-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold tracking-wider text-purple-600 dark:text-purple-400 uppercase">Concepts Fondamentaux</span>
+      <h2 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">OLTP vs OLAP et ETL vs ELT</h2>
+      <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 text-sm sm:text-base">
+        Comprendre la différence entre exécuter une application transactionnelle et analyser des millions de données historiques.
+      </p>
+    </div>
+
+    <!-- Comparatif OLTP vs OLAP -->
+    <div class="glass-card rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-800 mb-12">
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white flex justify-between items-center">
+        <h3 class="font-bold text-lg"><i class="fa-solid fa-scale-balanced mr-2"></i>Le Duel : OLTP vs OLAP</h3>
+        <span class="text-xs bg-white/20 px-3 py-1 rounded-full">Indispensable en entretien Data</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-xs uppercase text-slate-500">
+            <tr>
+              <th class="p-4">Caractéristique</th>
+              <th class="p-4 text-blue-600 dark:text-blue-400 font-bold">OLTP (Online Transaction Processing)</th>
+              <th class="p-4 text-indigo-600 dark:text-indigo-400 font-bold">OLAP (Online Analytical Processing)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+            <tr>
+              <td class="p-4 font-semibold">Objectif Principal</td>
+              <td class="p-4">Faire tourner les opérations quotidiennes de l'application (ex: réserver une course de taxi).</td>
+              <td class="p-4">Aider les dirigeants et analystes à prendre des décisions stratégiques (KPIs, tendances).</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold">Type d'opérations</td>
+              <td class="p-4">Écritures & Mises à jour rapides unitaires : <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>.</td>
+              <td class="p-4">Lectures massives avec calculs d'agrégation : <code>SELECT SUM()</code>, <code>AVG()</code>, <code>GROUP BY</code>.</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold">Volumétrie touchée</td>
+              <td class="p-4">Quelques lignes à chaque requête (accès par clé primaire).</td>
+              <td class="p-4">Des millions à des milliards de lignes scannées à la fois.</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold">Modélisation</td>
+              <td class="p-4">Normalisée (3NF) pour éliminer toute redondance et garantir l'intégrité ACID.</td>
+              <td class="p-4">Dénormalisée (Schéma en étoile / flocon) pour minimiser les jointures coûteuses.</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold">Stockage typique</td>
+              <td class="p-4">Ligne par ligne (Row-oriented).</td>
+              <td class="p-4">Colonnaire (Parquet, ClickHouse, Snowflake).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Comparatif ETL vs ELT -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="glass-card p-6 rounded-2xl border-l-4 border-l-rose-500">
+        <div class="flex items-center space-x-3 mb-3">
+          <span class="text-xs font-bold px-2.5 py-1 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">Approche Classique</span>
+          <h4 class="text-lg font-bold">ETL (Extract ➔ Transform ➔ Load)</h4>
+        </div>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+          Les données sont extraites, transformées sur un <strong>serveur intermédiaire dédié</strong> (ex: Talend, Informatica), puis seulement les données finales nettoyées sont insérées dans la base.
+        </p>
+        <div class="p-3 bg-rose-50/50 dark:bg-rose-950/20 rounded-xl text-xs text-rose-800 dark:text-rose-300">
+          ⚠️ <strong>Inconvénient majeur :</strong> Les données brutes d'origine sont perdues. Si la règle de calcul change, impossible de rejouer le passé !
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500">
+        <div class="flex items-center space-x-3 mb-3">
+          <span class="text-xs font-bold px-2.5 py-1 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">Approche Moderne (Notre Projet)</span>
+          <h4 class="text-lg font-bold">ELT (Extract ➔ Load ➔ Transform)</h4>
+        </div>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+          Les données sont extraites et <strong>immédiatement chargées brutes dans le Data Lake</strong> (Bronze). Ensuite, la puissance distribuée (Apache Spark, SQL) est exploitée pour transformer à volonté.
+        </p>
+        <div class="p-3 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
+          ✅ <strong>Avantage décisif :</strong> Rejouabilité totale, flexibilité absolue pour la Data Science et le reporting.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 4. LE FORMAT PARQUET EN PROFONDEUR                                        -->
+  <!-- ========================================================================= -->
+  <section id="parquet" class="py-16 bg-slate-100/70 dark:bg-slate-900/40 border-y border-slate-200 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase">Le Roi du Big Data</span>
+        <h2 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">Pourquoi Apache Parquet a Remplacé le CSV ?</h2>
+        <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 text-sm sm:text-base">
+          Parquet est un format de fichier binaire, colonnaire et compressé, conçu pour maximiser les performances de requêtage en Big Data.
+        </p>
+      </div>
+
+      <!-- Animation / Visuel comparatif Ligne vs Colonne -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center space-x-2 text-red-500 font-bold mb-3">
+            <i class="fa-solid fa-file-csv text-xl"></i>
+            <span>Format Ligne (CSV, PostgreSQL standard)</span>
+          </div>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mb-4">
+            Pour calculer le chiffre d'affaires moyen (colonne <code>fare_amount</code>), le disque doit lire <strong>toutes</strong> les colonnes de chaque ligne (date, id, adresses, drapeaux...).
+          </p>
+          <div class="bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-200 dark:border-red-900 text-xs font-mono">
+            <div class="text-slate-400">// Lecture disque séquentielle :</div>
+            <div class="bg-red-200 dark:bg-red-900/50 px-2 py-1 rounded my-1 text-red-900 dark:text-red-200">Ligne 1: [ID_1, 2024-01-01, 14.50, Manhattan, Visa, 1]</div>
+            <div class="bg-red-200 dark:bg-red-900/50 px-2 py-1 rounded my-1 text-red-900 dark:text-red-200">Ligne 2: [ID_2, 2024-01-01, 28.00, Queens, Cash, 2]</div>
+            <div class="text-red-600 dark:text-red-400 font-bold mt-2">➔ 100% du fichier chargé en mémoire RAM.</div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center space-x-2 text-emerald-500 font-bold mb-3">
+            <i class="fa-solid fa-layer-group text-xl"></i>
+            <span>Format Colonnaire (Apache Parquet)</span>
+          </div>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mb-4">
+            Les valeurs d'une même colonne sont stockées contiguës sur le disque. Le moteur de calcul ignore totalement les colonnes non demandées !
+          </p>
+          <div class="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs font-mono">
+            <div class="text-slate-400">// Lecture ciblée uniquement sur la colonne ciblée :</div>
+            <div class="opacity-40 text-slate-400">[ID_1, ID_2, ID_3...] ➔ Ignoré</div>
+            <div class="bg-emerald-200 dark:bg-emerald-900/50 px-2 py-1 rounded my-1 text-emerald-900 dark:text-emerald-200 font-bold">[14.50, 28.00, 9.20...] ➔ Seule colonne lue !</div>
+            <div class="opacity-40 text-slate-400">[Manhattan, Queens, Brooklyn...] ➔ Ignoré</div>
+            <div class="text-emerald-600 dark:text-emerald-400 font-bold mt-2">➔ 80% d'I/O disque et de mémoire économisés.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Les 3 Super-Pouvoirs de Parquet -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 flex items-center justify-center mb-3">
+            <i class="fa-solid fa-compress"></i>
+          </div>
+          <h4 class="font-bold text-base mb-1">1. Taux de Compression Élevé</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            Comme une colonne ne contient qu'un seul type de données (ex: tous des flottants), les algorithmes (Snappy, GZIP, Run-Length Encoding) compressent 5 à 10 fois mieux qu'en CSV.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+          <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 flex items-center justify-center mb-3">
+            <i class="fa-solid fa-filter"></i>
+          </div>
+          <h4 class="font-bold text-base mb-1">2. Predicate Pushdown</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            Chaque groupe de lignes (<em>Row Group</em>) enregistre les valeurs <code>Min</code> et <code>Max</code>. Pour <code>WHERE fare &gt; 50</code>, Spark saute les blocs où Max = 30 sans même les lire !
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+          <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-300 flex items-center justify-center mb-3">
+            <i class="fa-solid fa-eye-slash"></i>
+          </div>
+          <h4 class="font-bold text-base mb-1">3. Projection Pushdown</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            Si votre table comporte 80 colonnes mais que votre requête n'en demande que 2, seules les 2 colonnes sont chargées depuis le disque ou le bucket S3.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 5. SCHÉMA EN ÉTOILE vs SCHÉMA EN FLOCON (SNOWFLAKE)                       -->
+  <!-- ========================================================================= -->
+  <section id="modelisation" class="py-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold tracking-wider text-pink-600 dark:text-pink-400 uppercase">Modélisation Décisionnelle (Kimball)</span>
+      <h2 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">Schéma en Étoile vs Schéma en Flocon</h2>
+      <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 text-sm sm:text-base">
+        Comment structurer les données dans la couche Gold pour que Metabase et les analystes SQL obtiennent des réponses instantanées ?
+      </p>
+    </div>
+
+    <!-- Sélecteur interactif Étoile vs Flocon -->
+    <div class="flex justify-center mb-8">
+      <div class="p-1 rounded-xl bg-slate-200 dark:bg-slate-800 inline-flex space-x-1">
+        <button id="btnStar" onclick="switchSchema('star')" class="px-5 py-2 rounded-lg font-bold text-sm bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow transition">
+          <i class="fa-solid fa-star mr-2 text-yellow-500"></i>Schéma en Étoile (Star Schema)
+        </button>
+        <button id="btnSnow" onclick="switchSchema('snow')" class="px-5 py-2 rounded-lg font-bold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
+          <i class="fa-regular fa-snowflake mr-2 text-cyan-400"></i>Schéma en Flocon (Snowflake)
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENU DYNAMIQUE ÉTOILE / FLOCON -->
+    <div id="schemaContainer" class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl">
+      <!-- Rempli par JavaScript -->
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 6. L'ARCHITECTURE MÉDAILLON EN DÉTAIL                                     -->
+  <!-- ========================================================================= -->
+  <section id="medaillon" class="py-16 bg-slate-100/70 dark:bg-slate-900/40 border-y border-slate-200 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase">Le Cœur du Projet</span>
+        <h2 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">L'Architecture Médaillon : Bronze ➔ Silver ➔ Gold</h2>
+        <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 text-sm sm:text-base">
+          Chaque couche applique un contrat de service précis et prépare les données pour une audience différente.
+        </p>
+      </div>
+
+      <div class="space-y-8">
+        <!-- COUCHE BRONZE -->
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border-l-8 border-l-amber-600 relative overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-full bg-amber-600 text-white font-extrabold flex items-center justify-center text-sm shadow">1</span>
+              <h3 class="text-2xl font-extrabold text-amber-900 dark:text-amber-400">Couche Bronze (Raw Landing Zone)</h3>
+            </div>
+            <span class="text-xs font-mono px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">MinIO / s3a://bronze/</span>
+          </div>
+
+          <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+            La couche Bronze est la porte d'entrée de votre plateforme de données. Elle réceptionne les flux bruts tels qu'émis par les sources (AWS Open Data, API, Kafka, bases opérationnelles).
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-900/40">
+              <span class="font-bold text-amber-800 dark:text-amber-300 uppercase block mb-1">Règles d'or absolues :</span>
+              <ul class="space-y-1 text-slate-700 dark:text-slate-300">
+                <li>• <strong>Immutabilité totale</strong> : on ne modifie JAMAIS les données brutes.</li>
+                <li>• <strong>Pas de filtrage</strong> : même les prix négatifs et erreurs sont conservés !</li>
+                <li>• <strong>Auditabilité</strong> : traçabilité de l'origine et timestamp d'ingestion.</li>
+              </ul>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+              <span class="font-bold text-slate-800 dark:text-slate-200 uppercase block mb-1">Dans notre projet TP :</span>
+              <p class="text-slate-600 dark:text-slate-400 font-mono">
+                Téléchargement du Parquet NYC TLC (~3M courses) et CSV des zones ➔ MinIO bucket <code>bronze</code> dans <code>nyc_taxi/raw_year=2024/raw_month=01/</code>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- COUCHE SILVER -->
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border-l-8 border-l-slate-400 relative overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-full bg-slate-500 text-white font-extrabold flex items-center justify-center text-sm shadow">2</span>
+              <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-200">Couche Silver (Cleaned & Conformed)</h3>
+            </div>
+            <span class="text-xs font-mono px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">MinIO / s3a://silver/</span>
+          </div>
+
+          <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+            La couche de vérité d'entreprise (<em>Single Source of Truth</em>). PySpark nettoie, type rigoureusement, filtre les anomalies, enrichit et partitionne les données.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-300 dark:border-slate-700">
+              <span class="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">Transformations PySpark réalisées :</span>
+              <ul class="space-y-1 text-slate-700 dark:text-slate-300">
+                <li>• <strong>Filtrage</strong> : élimination des tarifs négatifs, distances nulles, passagers = 0.</li>
+                <li>• <strong>Feature Engineering</strong> : calcul de la durée (minutes), vitesse moyenne (mph), taux de pourboire.</li>
+                <li>• <strong>Jointure</strong> : enrichissement géographique avec les Boroughs (Manhattan, Queens...).</li>
+              </ul>
+            </div>
+            <div class="p-4 bg-blue-50/60 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/40">
+              <span class="font-bold text-blue-800 dark:text-blue-300 uppercase block mb-1">Optimisation physique :</span>
+              <p class="text-slate-600 dark:text-slate-400">
+                Format <strong>Parquet Snappy</strong> partitionné par date (<code>pickup_date=YYYY-MM-DD</code>). Idéal pour les Data Scientists et requêtes d'entraînement de modèles ML.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- COUCHE GOLD -->
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border-l-8 border-l-yellow-500 relative overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-full bg-yellow-500 text-slate-900 font-extrabold flex items-center justify-center text-sm shadow">3</span>
+              <h3 class="text-2xl font-extrabold text-yellow-900 dark:text-yellow-400">Couche Gold (Curated Business & Data Marts)</h3>
+            </div>
+            <span class="text-xs font-mono px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-950/60 text-yellow-800 dark:text-yellow-300">PostgreSQL (gold_db)</span>
+          </div>
+
+          <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+            La couche orientée métier. On ne stocke plus des trajets individuels bruts, mais des indicateurs agrégés prêts à être consommés directement par les décideurs via des outils de BI comme <strong>Metabase</strong>.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-yellow-50/60 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/40">
+              <span class="font-bold text-yellow-800 dark:text-yellow-300 uppercase block mb-1">Pourquoi PostgreSQL et pas le Data Lake ?</span>
+              <ul class="space-y-1 text-slate-700 dark:text-slate-300">
+                <li>• <strong>Latence sub-seconde</strong> pour les tableaux de bord interactifs.</li>
+                <li>• <strong>Indexation B-Tree</strong> sur les colonnes clés (date, borough).</li>
+                <li>• <strong>Concurrence d'accès</strong> élevée pour des dizaines d'utilisateurs simultanés.</li>
+              </ul>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+              <span class="font-bold text-slate-800 dark:text-slate-200 uppercase block mb-1">Data Marts créés dans le TP :</span>
+              <p class="text-slate-600 dark:text-slate-400 font-mono">
+                • <code>agg_daily_taxi_metrics</code> : CA, courses et pourboires quotidiens.<br>
+                • <code>agg_hourly_demand</code> : heures de pointe et vitesse du trafic.<br>
+                • <code>agg_borough_flows</code> : flux Origine ➔ Destination.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 7. QUIZ INTERACTIF ÉLÈVE (10 QUESTIONS)                                   -->
+  <!-- ========================================================================= -->
+  <section id="quiz" class="py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 mb-3">
+        <i class="fa-solid fa-check-double"></i>
+        <span>Auto-Évaluation des Étudiants</span>
+      </div>
+      <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Quiz : Validez vos Connaissances</h2>
+      <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">
+        10 questions pour vérifier si vous avez bien assimilé les notions clés du projet.
+      </p>
+    </div>
+
+    <div class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl">
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div class="text-sm font-semibold text-slate-600 dark:text-slate-400">
+          Question <span id="qIndex" class="text-indigo-600 dark:text-indigo-400 font-bold">1</span> / 10
+        </div>
+        <div class="text-sm font-semibold">
+          Score : <span id="qScore" class="text-emerald-600 dark:text-emerald-400 font-extrabold">0</span> / 10
+        </div>
+      </div>
+
+      <div id="quizContent">
+        <!-- Rempli par JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- PIED DE PAGE                                                              -->
+  <!-- ========================================================================= -->
+  <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center space-x-2">
+        <div class="w-6 h-6 rounded bg-indigo-600 text-white flex items-center justify-center font-bold">M</div>
+        <span class="font-bold text-slate-800 dark:text-slate-200">Architecture Médaillon Pédagogique</span>
+      </div>
+      <p>Projet conteneurisé avec Docker Compose (MinIO, PySpark, PostgreSQL, Metabase, Nginx).</p>
+      <div class="flex space-x-4">
+        <a href="http://localhost:8888" target="_blank" class="hover:text-blue-500 transition">JupyterLab (8888)</a>
+        <a href="http://localhost:9001" target="_blank" class="hover:text-blue-500 transition">MinIO Console (9001)</a>
+        <a href="http://localhost:3000" target="_blank" class="hover:text-blue-500 transition">Metabase (3000)</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- SCRIPTS INTERACTIFS (LOGIQUE DU SITE)                                     -->
+  <!-- ========================================================================= -->
+  <script>
+    // --- GESTION DU THEME DARK / LIGHT ---
+    const themeToggle = document.getElementById('themeToggle');
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // --- SIMULATEUR D'ARCHITECTURE ---
+    const simVolume = document.getElementById('simVolume');
+    const simTypes = document.getElementById('simTypes');
+    const simTarget = document.getElementById('simTarget');
+    const simResult = document.getElementById('simResult');
+
+    function updateSimulator() {
+      const vol = simVolume.value;
+      const type = simTypes.value;
+      const target = simTarget.value;
+
+      let title = "";
+      let desc = "";
+      let tech = "";
+      let badge = "";
+
+      if (vol === "low" && type === "structured" && target === "bi") {
+        badge = "Architecture Légère : Pure RDBMS / DWH";
+        title = "PostgreSQL seul ou petit Data Warehouse Cloud";
+        desc = "Pour moins de 50 Go de données purement relationnelles destinées à du reporting, un Data Lake ou un cluster Spark ajouterait une complexité inutile (overkill). Une base PostgreSQL bien indexée répond en quelques millisecondes.";
+        tech = "PostgreSQL + Metabase (Simple, robuste, économique).";
+      } else if (vol === "high" || type === "mixed") {
+        badge = "Architecture Recommandée : Data Lakehouse Médaillon (Notre Projet)";
+        title = "Lakehouse Moderne (MinIO S3 + Spark + PostgreSQL Gold)";
+        desc = "Face à des volumes massifs ou des formats hétérogènes (Parquet, CSV, JSON), l'architecture Médaillon offre le meilleur des deux mondes : le stockage objet ultra-scalable à faible coût (Bronze/Silver sur MinIO) et la réactivité d'un Data Warehouse relationnel pour la BI (Gold sur Postgres/Metabase).";
+        tech = "MinIO (Bronze & Silver Parquet) + Apache Spark + PostgreSQL (Gold Marts) + Metabase.";
+      } else {
+        badge = "Architecture Analytique Hybride";
+        title = "Data Lakehouse Modulaire";
+        desc = "La séparation nette du stockage objet et du calcul permet d'alimenter simultanément les tableaux de bord financiers et les pipelines de Machine Learning sans duplicata de données.";
+        tech = "MinIO + PySpark / DuckDB + Base relationnelle indexée.";
+      }
+
+      simResult.innerHTML = `
+        <div class="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-2">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span>${badge}</span>
+        </div>
+        <h4 class="text-lg font-extrabold text-slate-900 dark:text-white mb-2">${title}</h4>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">${desc}</p>
+        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl text-xs font-mono text-indigo-900 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/50">
+          <strong>Stack recommandée :</strong> ${tech}
+        </div>
+      `;
+    }
+
+    simVolume.addEventListener('change', updateSimulator);
+    simTypes.addEventListener('change', updateSimulator);
+    simTarget.addEventListener('change', updateSimulator);
+    updateSimulator();
+
+    // --- EXPLORATEUR ETOILE VS FLOCON ---
+    const schemaContainer = document.getElementById('schemaContainer');
+    const btnStar = document.getElementById('btnStar');
+    const btnSnow = document.getElementById('btnSnow');
+
+    function switchSchema(type) {
+      if (type === 'star') {
+        btnStar.className = "px-5 py-2 rounded-lg font-bold text-sm bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow transition";
+        btnSnow.className = "px-5 py-2 rounded-lg font-bold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        schemaContainer.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            <div class="lg:col-span-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-yellow-600 dark:text-yellow-400">Le Favori de la BI</span>
+              <h3 class="text-2xl font-extrabold mb-3 text-slate-900 dark:text-white">Schéma en Étoile (Star Schema)</h3>
+              <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+                Une <strong>table de faits centrale</strong> (métriques chiffrées) reliée directement à plusieurs <strong>tables de dimensions dénormalisées</strong>.
+              </p>
+              <ul class="text-xs space-y-2 text-slate-600 dark:text-slate-300 mb-4">
+                <li><i class="fa-solid fa-check text-green-500 mr-1.5"></i><strong>Requêtes SQL simples</strong> : 1 seule jointure par dimension.</li>
+                <li><i class="fa-solid fa-check text-green-500 mr-1.5"></i><strong>Performances maximales</strong> pour les agrégations BI.</li>
+                <li><i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i>Légère redondance d'espace disque (négligeable aujourd'hui).</li>
+              </ul>
+            </div>
+            <div class="lg:col-span-2 bg-slate-50 dark:bg-slate-900/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-xs">
+              <div class="text-center font-bold text-slate-400 mb-3">// Architecture Visuelle : Schéma en Étoile</div>
+              <div class="flex flex-col items-center space-y-3">
+                <div class="px-4 py-2 rounded-xl bg-blue-100 dark:bg-blue-900/60 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700 font-bold">
+                  dim_date (date, jour, mois, annee, jour_semaine)
+                </div>
+                <div class="flex items-center space-x-4">
+                  <div class="px-4 py-2 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-200 border border-purple-300 dark:border-purple-700 font-bold">
+                    dim_zones (id, zone, borough)
+                  </div>
+                  <div class="px-6 py-4 rounded-2xl bg-amber-500 text-slate-950 font-black shadow-lg text-center">
+                    ⭐ FACT_RIDES<br>
+                    <span class="text-[10px] font-normal text-slate-900">(date_id, zone_id, vendor_id, fare, tip, duration)</span>
+                  </div>
+                  <div class="px-4 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 font-bold">
+                    dim_vendor (id, nom_compagnie)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        btnSnow.className = "px-5 py-2 rounded-lg font-bold text-sm bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-300 shadow transition";
+        btnStar.className = "px-5 py-2 rounded-lg font-bold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+        schemaContainer.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            <div class="lg:col-span-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Normalisation Poussée</span>
+              <h3 class="text-2xl font-extrabold mb-3 text-slate-900 dark:text-white">Schéma en Flocon (Snowflake)</h3>
+              <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+                Les dimensions sont <strong>normalisées</strong> en sous-dimensions pour supprimer toute répétition textuelle (ex: <code>dim_zone</code> pointe vers <code>dim_borough</code> qui pointe vers <code>dim_city</code>).
+              </p>
+              <ul class="text-xs space-y-2 text-slate-600 dark:text-slate-300 mb-4">
+                <li><i class="fa-solid fa-check text-green-500 mr-1.5"></i><strong>Zéro redondance</strong> de données.</li>
+                <li><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i><strong>Jointures multiples complexes</strong> (ex: 3 <code>JOIN</code> pour obtenir la ville).</li>
+                <li><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i>Ralentit les requêtes analytiques massives.</li>
+              </ul>
+            </div>
+            <div class="lg:col-span-2 bg-slate-50 dark:bg-slate-900/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-xs">
+              <div class="text-center font-bold text-slate-400 mb-3">// Architecture Visuelle : Schéma en Flocon</div>
+              <div class="flex flex-col items-center space-y-2">
+                <div class="flex items-center space-x-2">
+                  <div class="px-3 py-1.5 rounded-lg bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-200 border border-cyan-400">dim_city</div>
+                  <span>➔</span>
+                  <div class="px-3 py-1.5 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">dim_borough</div>
+                  <span>➔</span>
+                  <div class="px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">dim_zone</div>
+                </div>
+                <div class="text-slate-400">│</div>
+                <div class="px-6 py-3 rounded-2xl bg-cyan-600 text-white font-black text-center shadow-md">
+                  ❄️ FACT_RIDES
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    switchSchema('star');
+
+    // --- QUIZ DATA & ENGINE ---
+    const quizData = [
+      {
+        question: "Quel est le principe fondamental et absolu de la couche Bronze dans une architecture Médaillon ?",
+        options: [
+          "Nettoyer et supprimer immédiatement toutes les lignes contenant des erreurs",
+          "Conserver les données brutes telles quelles de manière 100% immutable et auditable",
+          "Agréger les indicateurs clés pour les dashboards de la direction",
+          "Créer des index relationnels B-Tree pour accélérer les requêtes SQL"
+        ],
+        answer: 1,
+        explanation: "La couche Bronze est une Landing Zone brute. On n'y applique aucun filtre afin de préserver l'historique exact et de pouvoir rejouer tout le pipeline en cas d'évolution métier."
+      },
+      {
+        question: "Pourquoi privilégie-t-on le format Apache Parquet plutôt que le CSV pour la couche Silver ?",
+        options: [
+          "Parce que Parquet est lisible avec un simple éditeur de texte Bloc-Notes",
+          "Parce que Parquet est colonnaire, fortement compressé et supporte le Predicate & Projection Pushdown",
+          "Parce que le CSV ne peut pas stocker plus de 1 000 lignes",
+          "Parce que Parquet empêche l'utilisation de clés primaires"
+        ],
+        answer: 1,
+        explanation: "Parquet stocke les données par colonnes, applique des compressions adaptées (Snappy) et permet au moteur Spark d'ignorer les colonnes et blocs de données non nécessaires."
+      },
+      {
+        question: "Dans le cadre d'un traitement décisionnel (BI), pourquoi choisit-on un système OLAP plutôt qu'OLTP ?",
+        options: [
+          "OLAP est optimisé pour les écritures transactionnelles rapides (ex: création de commande)",
+          "OLAP utilise une 3ème forme normale (3NF) stricte sans aucune redondance",
+          "OLAP est conçu pour scanner et agréger des millions de lignes avec des calculs comme SUM() ou AVG()",
+          "OLAP est réservé uniquement aux données non-structurées comme la vidéo"
+        ],
+        answer: 2,
+        explanation: "OLAP (Online Analytical Processing) est spécifiquement pensé pour la lecture massive, l'agrégation et le reporting décisionnel."
+      },
+      {
+        question: "Quelle est la différence fondamentale entre l'approche ETL et l'approche ELT ?",
+        options: [
+          "Dans l'ELT, les données brutes sont d'abord chargées dans le Data Lake avant d'être transformées",
+          "Dans l'ETL, aucune transformation n'est jamais effectuée",
+          "L'ELT supprime les données sources dès l'extraction",
+          "L'ETL utilise obligatoirement le cloud alors que l'ELT est exclusivement local"
+        ],
+        answer: 0,
+        explanation: "L'ELT (Extract-Load-Transform) charge immédiatement les données brutes dans le stockage objet (MinIO Bronze) puis exploite des moteurs comme Spark pour transformer à la demande."
+      },
+      {
+        question: "Pourquoi la couche Gold de ce projet est-elle chargée dans PostgreSQL plutôt que laissée dans le Data Lake MinIO ?",
+        options: [
+          "Parce que MinIO ne peut pas stocker plus de 10 Mo de données",
+          "Pour offrir des temps de réponse instantanés (&lt; 50ms) et gérer la concurrence d'accès sous Metabase grâce aux index",
+          "Parce que Metabase ne supporte aucun autre connecteur que PostgreSQL",
+          "Parce que Spark est incapable de lire du Parquet"
+        ],
+        answer: 1,
+        explanation: "Un Data Warehouse relationnel comme PostgreSQL apporte une indexation fine et une latence sub-seconde idéale pour les utilisateurs métier naviguant sur des dashboards BI."
+      },
+      {
+        question: "Qu'est-ce qu'un Data Mart par rapport à un Data Warehouse ?",
+        options: [
+          "Un Data Mart est le nom donné au serveur physique hébergeant la base de données",
+          "Un sous-ensemble ciblé et modélisé pour un département métier spécifique (ex: Finance, Logistique)",
+          "Un fichier CSV brut non nettoyé",
+          "Un outil de monitoring matériel"
+        ],
+        answer: 1,
+        explanation: "Un Data Mart est une vue partitionnée ou un ensemble de tables orienté vers une équipe précise (ex: les métriques de trafic des taxis pour les opérations)."
+      },
+      {
+        question: "Dans une modélisation dimensionnelle (Kimball), quel est l'avantage du Schéma en Étoile sur le Schéma en Flocon ?",
+        options: [
+          "Il permet de faire 10 jointures consécutives pour chaque attribut",
+          "Il simplifie les requêtes SQL et maximise les performances grâce à une seule jointure par dimension",
+          "Il normalise toutes les sous-tables pour économiser quelques octets",
+          "Il interdit l'usage d'une table de faits"
+        ],
+        answer: 1,
+        explanation: "Le schéma en étoile dénormalise les dimensions, ce qui simplifie l'écriture des requêtes SQL et réduit considérablement le temps de calcul des jointures."
+      },
+      {
+        question: "À quoi sert le partitionnement par date (ex: pickup_date=YYYY-MM-DD) dans la couche Silver ?",
+        options: [
+          "À masquer les données aux utilisateurs non autorisés",
+          "À permettre au moteur d'ignorer physiquement les dossiers des autres dates (Partition Pruning)",
+          "À convertir automatiquement les nombres en chaînes de caractères",
+          "À forcer l'usage du protocole HTTP au lieu de HTTPS"
+        ],
+        answer: 1,
+        explanation: "Le partitionnement organise physiquement les fichiers en répertoires par date. Lors d'une requête sur le 15 janvier, Spark ne lit que ce dossier précis, évitant un scan complet."
+      },
+      {
+        question: "Qu'appelle-t-on le 'Predicate Pushdown' dans les moteurs modernes comme Spark avec Parquet ?",
+        options: [
+          "La capacité à envoyer les filtres WHERE directement au niveau du format de stockage pour éviter de lire les blocs inutiles",
+          "La suppression automatique des colonnes sans préavis",
+          "Une règle de sécurité réseau bloquant les connexions non sécurisées",
+          "Une technique pour trier les données par ordre alphabétique uniquement"
+        ],
+        answer: 0,
+        explanation: "Le Predicate Pushdown évalue les conditions (ex: WHERE trip_distance > 10) à l'aide des métadonnées de statistiques Min/Max intégrées aux fichiers Parquet."
+      },
+      {
+        question: "Avant de démarrer un projet Data, si votre entreprise ne manipule que 5 Go de données structurées pour 3 analystes, quelle est la meilleure décision ?",
+        options: [
+          "Installer immédiatement un cluster Hadoop de 15 serveurs et une architecture streaming Kafka",
+          "Utiliser une architecture simple (PostgreSQL / SQLite) et éviter la sur-ingénierie (Overkill)",
+          "Refuser le projet tant que le volume n'atteint pas 1 Pétaoctet",
+          "Stocker les données uniquement sous forme d'images scannées"
+        ],
+        answer: 1,
+        explanation: "Un bon architecte Data évite la sur-ingénierie (YAGNI). Pour de petits volumes relationnels, une base classique PostgreSQL est beaucoup plus rapide et économique à déployer."
+      }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function renderQuestion() {
+      const q = quizData[currentQ];
+      document.getElementById('qIndex').innerText = currentQ + 1;
+      document.getElementById('qScore').innerText = score;
+
+      let html = `
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6 leading-snug">
+          ${q.question}
+        </h3>
+        <div class="space-y-3 mb-6">
+      `;
+
+      q.options.forEach((opt, idx) => {
+        html += `
+          <button onclick="handleAnswer(${idx})" id="opt-${idx}" class="w-full text-left p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-sm font-medium transition flex items-center justify-between group">
+            <span>${opt}</span>
+            <span class="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-xs group-hover:border-indigo-500">
+              ${String.fromCharCode(65 + idx)}
+            </span>
+          </button>
+        `;
+      });
+
+      html += `</div><div id="feedback" class="hidden"></div>`;
+      document.getElementById('quizContent').innerHTML = html;
+    }
+
+    function handleAnswer(selectedIdx) {
+      const q = quizData[currentQ];
+      const feedback = document.getElementById('feedback');
+      const isCorrect = (selectedIdx === q.answer);
+
+      // Désactiver tous les boutons
+      for (let i = 0; i < q.options.length; i++) {
+        const btn = document.getElementById(`opt-${i}`);
+        btn.disabled = true;
+        if (i === q.answer) {
+          btn.className = "w-full text-left p-4 rounded-xl border border-green-500 bg-green-50 dark:bg-green-950/40 text-green-900 dark:text-green-200 text-sm font-bold flex items-center justify-between";
+        } else if (i === selectedIdx && !isCorrect) {
+          btn.className = "w-full text-left p-4 rounded-xl border border-red-500 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 text-sm font-medium flex items-center justify-between opacity-80";
+        } else {
+          btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/20 dark:bg-slate-800/20 text-sm opacity-50";
+        }
+      }
+
+      if (isCorrect) {
+        score++;
+        document.getElementById('qScore').innerText = score;
+      }
+
+      feedback.className = `p-4 rounded-xl text-xs leading-relaxed mt-4 ${isCorrect ? 'bg-green-100 dark:bg-green-950/60 text-green-900 dark:text-green-200 border border-green-300 dark:border-green-800' : 'bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-200 border border-red-300 dark:border-red-800'}`;
+      feedback.innerHTML = `
+        <div class="font-bold mb-1">${isCorrect ? '🎉 Excellente réponse !' : '❌ Pas tout à fait...'}</div>
+        <p>${q.explanation}</p>
+        <div class="mt-3 text-right">
+          ${currentQ < quizData.length - 1 
+            ? `<button onclick="nextQuestion()" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 shadow transition">Question suivante <i class="fa-solid fa-arrow-right ml-1"></i></button>`
+            : `<button onclick="showFinalScore()" class="px-5 py-2 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow transition">Voir mon bilan final 🏆</button>`
+          }
+        </div>
+      `;
+      feedback.classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      renderQuestion();
+    }
+
+    function showFinalScore() {
+      const pct = (score / quizData.length) * 100;
+      let badge = "";
+      if (pct >= 80) badge = "🥇 Niveau Expert en Data Engineering ! Bravo !";
+      else if (pct >= 50) badge = "🥈 Bonnes bases ! Quelques notions à consolider dans les notebooks.";
+      else badge = "🥉 Reprenez les sections théoriques et les notebooks 00 à 04 pour progresser.";
+
+      document.getElementById('quizContent').innerHTML = `
+        <div class="text-center py-8">
+          <div class="w-16 h-16 mx-auto rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-3xl mb-4">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Quiz Terminé !</h3>
+          <p class="text-4xl font-black text-indigo-600 dark:text-indigo-400 my-4">${score} / ${quizData.length} <span class="text-lg font-normal text-slate-500">(${pct}%)</span></p>
+          <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 font-semibold text-sm max-w-md mx-auto mb-6">
+            ${badge}
+          </div>
+          <button onclick="restartQuiz()" class="px-6 py-2.5 rounded-xl bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-bold text-xs hover:opacity-90 shadow transition">
+            <i class="fa-solid fa-rotate-left mr-2"></i>Recommencer le Quiz
+          </button>
+        </div>
+      `;
+    }
+
+    function restartQuiz() {
+      currentQ = 0;
+      score = 0;
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>
